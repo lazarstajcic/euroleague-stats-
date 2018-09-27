@@ -1,31 +1,28 @@
 
 class Club():
 
-    def __init__(self,teamName,teamLogo,teamRoaster):
+    def __init__(self,team_name,team_logo,team_roaster):
 
-        self.teamName = teamName
-        self.teamLogo = teamLogo
-        self.teamRoaster = teamRoaster
+        self.team_name = team_name
+        self.team_logo = team_logo
+        self.team_roaster = team_roaster
 
-
-    def return_roaster(self):
+    def __str__(self):
         roaster = ''
-        for player in self.teamRoaster:
-            roaster += player.return_info() + '\n'
+        for player in self.team_roaster:
+            roaster += player.__str__() + '\n'
         return roaster
-
 
 
 class Player():
 
-    def __init__(self, Number, Name, Position, Height):
+    def __init__(self, number, name, position, height):
 
-        self.Number = Number
-        self.Name = Name
-        self.Position = Position
-        self.Height = Height
+        self.number = number
+        self.name = name
+        self.position = position
+        self.height = height
 
+    def __str__(self):
 
-    def return_info(self):
-
-        return self.Number + ' ' + self.Name + ' ' + self.Position + ' ' + self.Height + ' '
+        return self.number + ' ' + self.name + ' ' + self.position + ' ' + self.height + ' '

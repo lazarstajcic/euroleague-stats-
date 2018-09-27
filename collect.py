@@ -3,51 +3,42 @@ from bs4 import BeautifulSoup
 from club import Club,Player
 
 
+clubs = []
 
-class CollectEuroleague():
+source = requests.get('http://www.euroleague.net/competition/teams?seasoncode=E2017').text
+soup = BeautifulSoup(source,'lxml')
+teams = soup.findAll('div', {"class": 'item'})
 
-    clubs = []
+for team in teams:
 
-    def __init__(self,):
+    club_name = team.find('div', {'class': 'RoasterName'}).a.text
 
-        self.grab_euroleague_info()
+    image_url = team.find('div', {'class': 'RoasterImage'}).img['src']
+    response = requests.get(image_url, stream=True)
+    response.raw.decode_content = True
+    img_raw = response.raw
 
-    def grab_euroleague_info(self):
+    page_pom = team.find('div', {'class': 'RoasterName'}).a['href']
+    club_page_url = 'http://www.euroleague.net'+page_pom
 
-        source = requests.get('http://www.euroleague.net/competition/teams?seasoncode=E2017').text
-        soup = BeautifulSoup(source,'lxml')
-        teams = soup.findAll('div', {"class" : 'item'})
+    source1 = requests.get(club_page_url)
+    club_page = BeautifulSoup(source1.text, 'lxml')
 
-        for team in teams:
+    aside = club_page.find('div', {'class': 'aside'})
+    players_pom = aside.find('table').tbody.findAll('tr')
 
-            Name = team.find('div', {'class': 'RoasterName'}).a.text
+    players = []
 
-            ImageURL = team.find('div', {'class': 'RoasterImage'}).img['src']
-            response = requests.get(ImageURL, stream = True)
-            response.raw.decode_content = True
-            imgRaw = response.raw
+    for row in players_pom:
 
-            StatsPom = team.find('div', {'class': 'RoasterName'}).a['href']
-            Stats = 'http://www.euroleague.net'+StatsPom
+        num = row.find('td', {'class': 'col-no'}).text.strip()
+        name = row.find('td', {'class': 'col-name'}).text.strip()
+        pos = row.find('td', {'class': 'col-pos'}).text.strip()
+        height = row.find('td', {'class': 'col-height'}).text.strip()
 
-            source1 = requests.get(Stats)
-            clubPage = BeautifulSoup(source1.text, 'lxml')
+        players.append(Player(num,name,pos,height))
 
-            aside = clubPage.find('div', {'class': 'aside'})
-            playersPom = aside.find('table').tbody.findAll('tr')
-
-            players = []
-
-            for row in playersPom:
-
-                num = row.find('td', {'class': 'col-no'}).text.strip()
-                name = row.find('td', {'class': 'col-name'}).text.strip()
-                pos = row.find('td', {'class': 'col-pos'}).text.strip()
-                height = row.find('td', {'class': 'col-height'}).text.strip()
-
-                players.append(Player(num,name,pos,height))
-
-            self.clubs.append(Club(Name, imgRaw, players))
+    clubs.append(Club(club_name, img_raw, players))
 
 
 
