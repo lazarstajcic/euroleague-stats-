@@ -2,6 +2,7 @@
 from tkinter import *
 from PIL import Image,ImageTk
 from collect import clubs
+from tkinter import messagebox
 
 
 class Application(Frame):
@@ -14,41 +15,46 @@ class Application(Frame):
 
     def create_widgets(self):
 
-        team1_options = StringVar(self)
+        self.instruction = Label(self, text="Please choose two teams to compare and hit the Compare button.")
+        self.instruction.grid(row=0, column=1, pady=20, sticky=W+E)
+
+        self.team1_chance = Text(self, height=1, width=10)
+        self.team1_chance.grid(row=0, column=0, sticky=W)
+        self.team2_chance = Text(self, height=1, width=10)
+        self.team2_chance.grid(row=0, column=2, sticky=E)
+
+        self.nav_frame = Frame(width = 600)
+        self.nav_frame.grid(row=1, column=0)
+
+        self.team1_options = StringVar(self)
 
         choices = set()
         for c in clubs:
             choices.add(c.team_name)
 
-        team1_options.set('Team1')
+        self.team1_options.set('Team1')
 
-        team2_options = StringVar(self)
-        team2_options.set('Team2')
+        self.team2_options = StringVar(self)
+        self.team2_options.set('Team2')
 
-        self.instruction = Label(self, text="Please choose two teams to compare and hit the Compare button.")
-        self.instruction.grid(row = 0, column = 0, pady = 20, sticky= W+E)
+        self.team1_menu = OptionMenu(self.nav_frame, self.team1_options, *choices)
+        self.team1_menu.config(width=20)
+        self.team1_menu.grid(row=1, column=0, padx=20, sticky=E+W)
 
-        self.nav_frame = Frame(width = 600)
-        self.nav_frame.grid(row = 1,  column = 0)
+        self.team2_menu = OptionMenu(self.nav_frame, self.team2_options, *choices)
+        self.team2_menu.config(width=20)
+        self.team2_menu.grid(row=1, column=2, padx=20, sticky=E+W)
 
-        self.nav_frame.team1_menu = OptionMenu(self.nav_frame, team1_options, *choices)
-        self.nav_frame.team1_menu.config(width=20)
-        self.nav_frame.team1_menu.grid(row = 1, column = 0, padx = 20, sticky = E+W)
-
-        self.nav_frame.team2_menu = OptionMenu(self.nav_frame, team2_options, *choices)
-        self.nav_frame.team2_menu.config(width=20)
-        self.nav_frame.team2_menu.grid(row = 1, column = 2, padx = 20, sticky = E+W)
-
-        self.nav_frame.button1 = Button(self.nav_frame, text="Compare", command=self.open_compared)
-        self.nav_frame.button1.grid(row = 1, column = 1, padx = 20, sticky = E+W)
+        self.button1 = Button(self.nav_frame, text="Compare", command=self.open_compared)
+        self.button1.grid(row=1, column=1, padx=20, sticky=E+W)
 
         self.body_frame = Frame(width = 600)
-        self.body_frame.grid(row = 2, column = 0, pady = 20)
+        self.body_frame.grid(row=2, column=0, pady=20)
 
         button_list = []
         r = 0
         c = 0
-        for i in range(0,16):
+        for i in range(0, 16):
 
             button_list.append(Button(self.body_frame, command=lambda i=i: self.open_info(i)))
 
@@ -58,37 +64,49 @@ class Application(Frame):
             button_list[i].image = image
             button_list[i].grid(row=r, column=c)
             c = c+1
-            if((i+1) % 4 == 0):
+            if (i+1) % 4 == 0:
                 r = r+1
                 c = 0
 
     def open_compared(self):
 
-        compared = Toplevel(self.master)
-        window_cmp = TeamsCompared(compared)
+        if self.team1_options.get() == 'Team1' or self.team2_options.get() == 'Team2':
 
-    def open_info(self,index):
+            messagebox.showerror('Error', 'Teams are not selected.')
 
-        info = Toplevel(self.master)
-        window_info = Info(info,index)
+        else:
 
+            i_1 = self.get_index(self.team1_options.get())
+            i_2 = self.get_index(self.team2_options.get())
 
-class TeamsCompared(Frame):
+            pir1 = clubs[i_1].pir
+            pir2 = clubs[i_2].pir
 
-    def __init__(self,master):
+            total = float(pir1) + float(pir2)
 
-        Frame.__init__(self, master)
+            chance1 = 100*float(pir1)//total
+            chance2 = 100-chance1
 
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
+            self.team1_chance.delete(1.0, END)
+            self.team1_chance.insert(END, str(chance1)+'%')
 
-        width_local = 400
-        height_local = 400
+            self.team2_chance.delete(1.0, END)
+            self.team2_chance.insert(END, str(chance2)+'%')
 
-        x_local = (screen_width // 2) - (width_local // 2)
-        y_local = (screen_height // 2) - (height_local // 2)
-        self.master.geometry('{}x{}+{}+{}'.format(width_local, height_local, x_local, y_local))
-        self.master.title("Comparation Engine")
+    def open_info(self, index):
+
+        info = Toplevel()
+        window_info = Info(info, index)
+
+    def get_index(self,team_name):
+
+        index=0
+        for i in range(0, 16):
+            if team_name == clubs[i].team_name:
+                index = i
+                break
+
+        return index
 
 
 class Info(Frame):
@@ -101,17 +119,26 @@ class Info(Frame):
         screen_height = self.winfo_screenheight()
 
         width_local = 400
-        height_local = 400
+        height_local = 550
 
         x_local = (screen_width // 2) - (width_local // 2)
         y_local = (screen_height // 2) - (height_local // 2)
         self.master.geometry('{}x{}+{}+{}'.format(width_local, height_local, x_local, y_local))
         self.master.title(clubs[index].team_name)
 
-        roaster = clubs[index].__str__()
+        master.name_label = Label(master, text=clubs[index].team_name)
+        master.name_label.grid(row=0, column=0, pady=20, sticky=E+W)
 
-        self.master.label = Label(self.master, text=roaster)
-        self.master.label.grid()
+        master.r_label = Label(master, text='Stats:', justify=LEFT)
+        master.r_label.grid(row=1, pady=10)
+        master.stats_label = Label(master, text=clubs[index].get_stats(), justify=LEFT)
+        master.stats_label.grid(row=2)
+
+        master.r_label = Label(master, text='Roaster:', justify=LEFT)
+        master.r_label.grid(row=3, pady=10)
+        roaster = clubs[index].get_roaster()
+        master.roaster_label = Label(master, text=roaster, justify=LEFT)
+        master.roaster_label.grid(row=4, column=0, padx=60)
 
 
 root = Tk()
@@ -132,4 +159,3 @@ root.resizable(0, 0)
 app = Application(root)
 
 root.mainloop()
-

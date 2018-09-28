@@ -1,12 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
-from club import Club,Player
+from club import Club, Player
 
 
 clubs = []
 
 source = requests.get('http://www.euroleague.net/competition/teams?seasoncode=E2017').text
-soup = BeautifulSoup(source,'lxml')
+soup = BeautifulSoup(source, 'lxml')
 teams = soup.findAll('div', {"class": 'item'})
 
 for team in teams:
@@ -36,18 +36,15 @@ for team in teams:
         pos = row.find('td', {'class': 'col-pos'}).text.strip()
         height = row.find('td', {'class': 'col-height'}).text.strip()
 
-        players.append(Player(num,name,pos,height))
+        players.append(Player(num, name, pos, height))
 
-    clubs.append(Club(club_name, img_raw, players))
+    average_team_stats_row = club_page.find('tr', {'class': 'AverageFooter'})
+    average_team_stats_list = average_team_stats_row.findAll('span')
 
+    team_stats_list = []
 
+    for stat in average_team_stats_list:
 
+        team_stats_list.append(stat.text)
 
-
-
-
-
-
-
-
-
+    clubs.append(Club(club_name, img_raw, players, team_stats_list))
